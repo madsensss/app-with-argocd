@@ -1,4 +1,4 @@
-name: CI
+name: CI CD
 
 on:
   workflow_dispatch
@@ -55,3 +55,18 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ github.sha }}
+    
+    - name: Update deployment image
+      run: |
+        sed -i 's|image: none|image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ github.sha }}|g' ./manifest/spring-deployment.yaml
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "madsenss@naver.com"
+        git config --local user.name "madsensss"
+        git add ./manifest/spring-deployment.yaml
+        git commit -m "Update deployment image to latest"
+        git push
+    
+    - name: Check updated deployment file
+      run: cat ./manifest/spring-deployment.yaml
